@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ihr Herzgesund-Kompass</title>
+    <title>Ihr Herzgesund-Kompass (mit Therapie-Details)</title>
     <!-- Chosen Palette: Vibrant Emerald and Warm Stone -->
-    <!-- Application Structure Plan: Die Struktur basiert auf 5 positiven "Säulen" (Genuss, Energie, Balance, Sicherheit, Praxis), die über eine Tab-Navigation zugänglich sind. Dieser Ansatz stellt das, was die 35-jährige Nutzerin aktiv tun kann, in den Mittelpunkt. Die Diagnose wird unter "Sicherheit" als Momentaufnahme entmystifiziert. Interaktive Modale (Fakten-Fenster) werden in mehreren Abschnitten (v.a. Ernährung) eingesetzt, um tiefere Informationen bei Bedarf anzubieten, ohne den Lesefluss zu stören. Dies fördert Empowerment und eine proaktive Haltung. -->
-    <!-- Visualization & Content Choices:
-        1. Info: Herzgesunder Teller. Goal: Inform/Empower. Viz: Doughnut Chart (Chart.js). Interaction: Visuelle Aufteilung. Justification: Zeigt positive Proportionen statt Verbote. Library: Chart.js.
-        2. Info: Detaillierte Nährstoff-Fakten (Salz, Kalium, Omega-3). Goal: Deepen Knowledge. Viz: Interaktive Modale (HTML/CSS/JS). Interaction: Klick auf animierten Button öffnet ein Overlay. Justification: Bietet detaillierte Fakten auf Abruf, visuell hervorgehoben wie vom User gewünscht.
-        3. Info: Bewegungstypen. Goal: Empower/Guide. Viz: Thematische Karten (HTML/Tailwind). Interaction: Keine. Justification: Klare, motivierende Gliederung in "Ausdauer" und "Kraft".
-        4. Info: ICD-Funktion. Goal: Reassure/Inform. Viz: Interaktives Modal. Interaction: Klick. Justification: Entmystifiziert die Technologie und rahmt sie als "Schutzengel", was die Angst reduziert.
-        5. Info: Praxis-Tipps. Goal: Empower/Organize. Viz: Checklisten-Stil Karten (HTML/Tailwind). Justification: Macht den Alltag mit der Diagnose greifbar und managebar.
+    <!-- 
+        ÄNDERUNG V2:
+        - Tab "Sicherheit (Medizin)" wurde stark überarbeitet.
+        - Der allgemeine Punkt "Medikamente" wurde durch die detaillierten "4 Säulen" (aus "Der Goldene Weg") ersetzt.
+        - Vier neue Modale für die 4 Säulen wurden hinzugefügt (modal-pillar1 bis modal-pillar4).
+        - Neue CSS-Klasse `.pillar-btn-hk` für die neuen Buttons hinzugefügt.
+        - Neue Info-Karten für "Ursache (Ätiologie)" und "Eisenmangel" (aus "Der Goldene Weg") hinzugefügt.
+        - Redundante Infos (ICD, Training) wurden nicht doppelt aufgenommen; die bestehenden Sektionen im Kompass bleiben erhalten.
+        - Titel und Einleitung des Tabs "Sicherheit" wurden angepasst, um den "Goldenen Weg" zu erwähnen.
     -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- KORREKTUR: 'type="text/tailwindcss"' hinzugefügt, damit das CDN die @apply-Regeln verarbeiten kann -->
@@ -81,7 +82,7 @@
             line-height: 1.5rem; /* Zentriert das Häkchen */
         }
         
-        /* --- NEUE ANIMATION & BUTTON-STILE --- */
+        /* --- ANIMATION & BUTTON-STILE --- */
         @keyframes pulse-light {
             0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
             50% { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
@@ -93,7 +94,12 @@
             border: 1px solid #a7f3d0; /* emerald-200 */
         }
         
-        /* --- NEUE MODAL STILE (KEIN HIDDEN) --- */
+        /* --- NEUER STIL FÜR DIE 4 SÄULEN BUTTONS --- */
+        .pillar-btn-hk {
+            @apply w-full text-center p-3 rounded-lg font-semibold bg-emerald-700 text-emerald-100 shadow-md transition-all duration-200 ease-in-out hover:bg-emerald-600 hover:shadow-lg transform hover:scale-105 cursor-pointer;
+        }
+
+        /* --- MODAL STILE (KEIN HIDDEN) --- */
         .modal {
             display: none; /* Standardmäßig versteckt, wird per inline style 'flex' */
             @apply fixed inset-0 z-50 overflow-auto bg-black bg-opacity-60 items-center justify-center p-4 transition-opacity duration-300 opacity-100;
@@ -151,12 +157,8 @@
                         
                         <div class="info-card border-l-4 border-emerald-500">
                             <h3>Darauf freut sich Ihr Herz</h3>
-                            <!-- GEÄNDERT: Kurzer Teaser-Text -->
                             <p class="text-sm mb-4">Die Basis Ihrer Ernährung sollte aus diesen Gruppen bestehen. Sie liefern Vitamine, Mineralstoffe und gesunde Energie.</p>
-                            <!-- NEU: Button hinzugefügt, der das neue Modal öffnet -->
                             <button class="modal-trigger-btn" onclick="document.getElementById('modal-basics').style.display = 'flex'">Details anzeigen (mehr erfahren)</button>
-                            
-                            <!-- ENTFERNT: Die UL-Liste wurde von hier in das Modal verschoben -->
                         </div>
                     </div>
                     
@@ -165,19 +167,16 @@
                         <div class="info-card">
                             <h4 class="text-xl font-semibold text-stone-800 mb-2">Der Salz-Check</h4>
                             <p class="text-sm mb-4">Das Reduzieren von Salz ist oft die effektivste Einzelmaßnahme. Es geht nicht nur um den Salzstreuer...</p>
-                            <!-- NEUE BRUTE-FORCE LOGIK -->
                             <button class="modal-trigger-btn" onclick="document.getElementById('modal-salt').style.display = 'flex'">Warum Salz so wichtig ist (mehr erfahren)</button>
                         </div>
                         <div class="info-card">
                             <h4 class="text-xl font-semibold text-stone-800 mb-2">Kalium: Der Gegenspieler</h4>
                             <p class="text-sm mb-4">Kalium ist ein Mineral, das hilft, den Blutdruck zu regulieren und die Effekte von Natrium auszugleichen.</p>
-                            <!-- NEUE BRUTE-FORCE LOGIK -->
                             <button class="modal-trigger-btn" onclick="document.getElementById('modal-potassium').style.display = 'flex'">Wo steckt Kalium drin? (mehr erfahren)</button>
                         </div>
                         <div class="info-card">
                             <h4 class="text-xl font-semibold text-stone-800 mb-2">Omega-3-Wunder</h4>
                             <p class="text-sm mb-4">Diese gesunden Fette sind echte "Herzschützer". Sie wirken entzündungshemmend.</p>
-                            <!-- NEUE BRUTE-FORCE LOGIK -->
                             <button class="modal-trigger-btn" onclick="document.getElementById('modal-omega3').style.display = 'flex'">Die besten Quellen (mehr erfahren)</button>
                         </div>
                     </div>
@@ -259,33 +258,64 @@
                     </div>
                 </div>
 
-                <!-- Tab 4: Medizin (Sicherheit) -->
+                <!-- Tab 4: Medizin (Sicherheit) - STARK ÜBERARBEITET MIT INHALTEN AUS "DER GOLDENE WEG" -->
                 <div id="support" class="content-pane hidden">
-                    <h2>Sicherheit: Ihr medizinisches Netz</h2>
-                    <p>Sehen Sie die moderne Medizin als Ihr persönliches Support-Team. Sie sind nicht allein – Sie haben ein Team und Technologie, die Sie unterstützen und beschützen.</p>
+                    <h2>Sicherheit: Ihr medizinisches Fundament</h2>
+                    <p>Moderne Medizin ist Ihr Schutznetz. Hier erklären wir die wichtigsten Bausteine Ihrer Therapie – den "Goldenen Weg", der Ihr Herz schützt und stärkt. Diese Maßnahmen sind die Basis für Ihren Lifestyle-Wandel.</p>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- (A) Das Fundament: Die 4 Säulen (Von DGW Station 2) -->
+                    <div class="info-card border-l-4 border-emerald-500 mb-6">
+                        <h3>Das Fundament: Die "Vier Säulen" der Therapie</h3>
+                        <p>Die moderne medikamentöse Therapie (GDMT) ist die unersetzliche Basis. Sie ruht auf vier fundamentalen Säulen, die synergistisch wirken, um Ihr Herz zu entlasten, es zu schützen und die Symptome zu lindern. <i>(Klicken für Details)</i></p>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                            <button onclick="document.getElementById('modal-pillar1').style.display = 'flex'" class="pillar-btn-hk">ARNI / ACEi</button>
+                            <button onclick="document.getElementById('modal-pillar2').style.display = 'flex'" class="pillar-btn-hk">Betablocker</button>
+                            <button onclick="document.getElementById('modal-pillar3').style.display = 'flex'" class="pillar-btn-hk">MRA</button>
+                            <button onclick="document.getElementById('modal-pillar4').style.display = 'flex'" class="pillar-btn-hk">SGLT2-i</button>
+                        </div>
+                    </div>
+        
+                    <!-- (B) Diagnose & ICD (Aus HK, neu angeordnet) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                         <div class="info-card">
                             <h3 class="text-emerald-700">Diagnose EF 35%: Eine Momentaufnahme</h3>
                             <p>Eine <strong>Ejektionsfraktion (EF) von 35%</strong> ist ein Messwert. Er beschreibt, wie viel Blut das Herz pro Schlag pumpt (gesund: 55-60%).</p>
-                            <p>Dieser Wert ist <strong>kein Urteil</strong>, sondern eine <strong>Momentaufnahme</strong>. Mit der richtigen Therapie und Ihrem Einsatz bei Ernährung und Bewegung kann sich dieser Wert oft verbessern! Er ist der Startpunkt Ihrer Reise.</p>
+                            <p>Dieser Wert ist <strong>kein Urteil</strong>, sondern eine <strong>Momentaufnahme</strong>. Mit der richtigen Therapie (den 4 Säulen) und Ihrem Einsatz bei Ernährung und Bewegung kann sich dieser Wert oft verbessern! Er ist der Startpunkt Ihrer Reise.</p>
                         </div>
-                        <div class="info-card">
-                            <h3 class="text-emerald-700">Medikamente: Ihr Team</h3>
-                            <p>Ihre Medikamente sind Ihre täglichen Helfer. Sie sind entscheidend, um:</p>
-                             <ul class="positive">
-                                <li>das Herz zu entlasten (z.B. Betablocker, ACE-Hemmer).</li>
-                                <li>die Pumpleistung zu verbessern.</li>
-                                <li>Symptome wie Wassereinlagerungen zu verhindern.</li>
-                            </ul>
-                            <p class="mt-4">Sehen Sie sie als Freunde, nicht als Last. Ihre konsequente Einnahme ist der Schlüssel.</p>
+                        <div class="info-card bg-emerald-50 border-emerald-200">
+                             <h3 class="text-emerald-800">Der ICD: Ihr Schutzengel</h3>
+                            <p class="mb-4">Bei einer EF unter 35% kann das Risiko für Rhythmusstörungen erhöht sein. Deshalb wird oft ein <strong>implantierbarer Defibrillator (ICD)</strong> empfohlen. Das klingt vielleicht beängstigend, aber rahmen Sie es neu: Es ist Ihr persönlicher Schutzengel, ein High-Tech-Bodyguard, der 24/7 über Sie wacht.</p>
+                            <button class="modal-trigger-btn" onclick="document.getElementById('modal-icd').style.display = 'flex'">Wie funktioniert ein ICD? (mehr erfahren)</button>
                         </div>
                     </div>
-                    <div class="info-card mt-6 bg-emerald-50 border-emerald-200">
-                        <h3 class="text-emerald-800">Der ICD: Ihr Schutzengel</h3>
-                        <p class="mb-4">Bei einer EF unter 35% kann das Risiko für Rhythmusstörungen erhöht sein. Deshalb wird oft ein <strong>implantierbarer Defibrillator (ICD)</strong> empfohlen. Das klingt vielleicht beängstigend, aber rahmen Sie es neu: Es ist Ihr persönlicher Schutzengel, ein High-Tech-Bodyguard, der 24/7 über Sie wacht.</p>
-                        <!-- NEUE BRUTE-FORCE LOGIK -->
-                        <button class="modal-trigger-btn" onclick="document.getElementById('modal-icd').style.display = 'flex'">Wie funktioniert ein ICD? (mehr erfahren)</button>
+        
+                    <!-- (C) Weitere wichtige Bausteine (Von DGW Station 4 & 5) -->
+                    <h3 class="text-2xl font-semibold text-emerald-700 mb-3 mt-8">Weitere wichtige Bausteine</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="info-card">
+                            <h4 class="text-xl font-semibold text-stone-800 mb-2">Die Ursache (Ätiologie)</h4>
+                            <p class="text-sm mb-4">Die Ursache Ihrer Herzschwäche (Ätiologie) ist wichtig für den weiteren Verlauf. Die Therapie wird darauf zugeschnitten. Häufige Ursachen sind:</p>
+                            <ul class="list-disc list-inside text-stone-700">
+                                <li>Koronare Herzkrankheit (KHK)</li>
+                                <li>Langjähriger Bluthochdruck</li>
+                            </ul>
+                             <p class="text-sm mt-4 mb-2">Besonders bei jüngeren Menschen wird auch nach selteneren Ursachen gesucht:</p>
+                             <ul class="list-disc list-inside text-stone-700">
+                                <li>Myokarditis (Herzmuskelentzündung)</li>
+                                <li>Genetische Kardiomyopathien</li>
+                                <li>Toxische Ursachen (z.B. Chemotherapie)</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h4 class="text-xl font-semibold text-stone-800 mb-2">Essenzielle Synergisten: Eisen</h4>
+                            <p class="text-sm mb-4">Ein <strong>Eisenmangel</strong> ist bei Herzinsuffizienz sehr häufig und kann Symptome wie Müdigkeit und Abgeschlagenheit verstärken – selbst wenn Ihr normales Blutbild (Hämoglobin) unauffällig ist.</p>
+                            <ul class="positive">
+                                <li>Ein Screening auf Eisenmangel ist Therapiestandard.</li>
+                                <li>Bei Mangel kann eine <strong>intravenöse (IV) Eisentherapie</strong> (als Infusion) Ihre Belastbarkeit und Lebensqualität oft deutlich verbessern.</li>
+                            </ul>
+                            <p class="text-sm mt-2"><i>(Körperliches Training, der andere wichtige Synergist, finden Sie im Tab "Energie".)</i></p>
+                        </div>
                     </div>
                 </div>
                 
@@ -332,17 +362,15 @@
 
     </div>
 
-    <!-- Modals (Fakten-Fenster) - JETZT OHNE 'hidden' KLASSE -->
+    <!-- Modals (Fakten-Fenster) -->
     
     <!-- NEU: Modal für die Ernährungs-Basics -->
     <div id="modal-basics" class="modal" onclick="if(event.target === this) this.style.display = 'none'">
         <div class="modal-content">
             <span class="modal-close" onclick="document.getElementById('modal-basics').style.display = 'none'">&times;</span>
             <h3 class="mt-0">Darauf freut sich Ihr Herz</h3>
-            <!-- GEÄNDERT: Ausführlicherer Inhalt -->
             <p>Diese Lebensmittelgruppen sind die Bausteine für eine herzstärkende Ernährung. Sie wirken oft entzündungshemmend und liefern lebenswichtige Nährstoffe:</p>
-            <!-- Ersetzt durch eine detailliertere Liste basierend auf der Studie -->
-            <ul class="positive mt-4 space-y-3"> <!-- 'space-y-3' für besseren Abstand -->
+            <ul class="positive mt-4 space-y-3">
                 <li>
                     <strong>Gemüse & Obst (Die Bunte Basis):</strong>
                     <p class="text-sm text-stone-600 pl-4">Die Basis! Mindestens 5 Portionen am Tag. Sie sind vollgepackt mit Vitaminen und wichtigem Kalium. <br><strong>Profi-Tipps:</strong> Greifen Sie zu Beeren (z.B. Blaubeeren) für Antioxidantien und Blattgemüse (z.B. Spinat). Frisch oder gefroren ist beides super!</p>
@@ -433,10 +461,51 @@
         </div>
     </div>
 
+    <!-- NEU: MODALE FÜR DIE 4 SÄULEN (AUS "DER GOLDENE WEG") -->
+    
+    <!-- Modal: Säule 1 -->
+    <div id="modal-pillar1" class="modal" onclick="if(event.target === this) this.style.display = 'none'">
+        <div class="modal-content">
+            <span class="modal-close" onclick="document.getElementById('modal-pillar1').style.display = 'none'">&times;</span>
+            <h3 class="mt-0 text-emerald-700">Säule 1: ARNI / ACE-Hemmer</h3>
+            <p><strong>Beispiel:</strong> Sacubitril/Valsartan (ARNI) oder Ramipril (ACE-Hemmer)</p>
+            <p class="mt-4"><strong>Wirkung:</strong> Diese Medikamente blockieren das Renin-Angiotensin-Aldosteron-System (RAAS). Sie entlasten das Herz, indem sie die Blutgefäße weiten und den Blutdruck senken. Sie sind fundamental, um die Sterblichkeit und Krankenhausaufenthalte zu reduzieren.</p>
+        </div>
+    </div>
+    
+    <!-- Modal: Säule 2 -->
+    <div id="modal-pillar2" class="modal" onclick="if(event.target === this) this.style.display = 'none'">
+        <div class="modal-content">
+            <span class="modal-close" onclick="document.getElementById('modal-pillar2').style.display = 'none'">&times;</span>
+            <h3 class="mt-0 text-emerald-700">Säule 2: Betablocker</h3>
+            <p><strong>Beispiel:</strong> Bisoprolol, Metoprololsuccinat, Carvedilol</p>
+            <p class="mt-4"><strong>Wirkung:</strong> Betablocker blockieren das sympathische Nervensystem ("Stress-System"). Sie senken die Herzfrequenz und schützen das Herz vor Überlastung und schädlichen Stresshormonen. Auch sie senken nachweislich Sterblichkeit und Hospitalisierungen.</p>
+        </div>
+    </div>
+    
+    <!-- Modal: Säule 3 -->
+    <div id="modal-pillar3" class="modal" onclick="if(event.target === this) this.style.display = 'none'">
+        <div class="modal-content">
+            <span class="modal-close" onclick="document.getElementById('modal-pillar3').style.display = 'none'">&times;</span>
+            <h3 class="mt-0 text-emerald-700">Säule 3: MRA</h3>
+            <p><strong>Beispiel:</strong> Spironolacton, Eplerenon</p>
+            <p class="mt-4"><strong>Wirkung:</strong> Mineralokortikoid-Rezeptor-Antagonisten. Sie wirken leicht diuretisch (entwässernd) und schützen das Herz vor Fibrose (krankhaftem Gewebeumbau). Eine weitere wichtige Säule zur Senkung von Sterblichkeit und Hospitalisierungen.</p>
+        </div>
+    </div>
+    
+    <!-- Modal: Säule 4 -->
+    <div id="modal-pillar4" class="modal" onclick="if(event.target === this) this.style.display = 'none'">
+        <div class="modal-content">
+            <span class="modal-close" onclick="document.getElementById('modal-pillar4').style.display = 'none'">&times;</span>
+            <h3 class="mt-0 text-emerald-700">Säule 4: SGLT2-Inhibitor</h3>
+            <p><strong>Beispiel:</strong> Dapagliflozin, Empagliflozin</p>
+            <p class="mt-4"><strong>Wirkung:</strong> Ursprünglich Diabetes-Medikamente. Sie fördern die Ausscheidung von Zucker und Salz über die Niere, was das Herz-Kreislauf-System massiv entlastet. Sie senken die Sterblichkeit und Krankenhausaufenthalte stark – <strong>unabhängig davon, ob ein Diabetes vorliegt oder nicht.</strong></p>
+        </div>
+    </div>
+
+
     <script>
         // --- V5 LOGIK (TABs & CHART) ---
-        // Die Modal-Logik ist jetzt DIREKT im HTML 'onclick'.
-
         var activeChart = null;
 
         // Zeigt einen Tab an und blendet andere aus
