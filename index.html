@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ihr Herzgesund-Kompass</title>
+    <!-- Chosen Palette: Vibrant Emerald and Warm Stone -->
+    <!-- Application Structure Plan: Die Struktur basiert auf 5 positiven "Säulen" (Genuss, Energie, Balance, Sicherheit, Praxis), die über eine Tab-Navigation zugänglich sind. Dieser Ansatz stellt das, was die 35-jährige Nutzerin aktiv tun kann, in den Mittelpunkt. Die Diagnose wird unter "Sicherheit" als Momentaufnahme entmystifiziert. Interaktive Modale (Fakten-Fenster) werden in mehreren Abschnitten (v.a. Ernährung) eingesetzt, um tiefere Informationen bei Bedarf anzubieten, ohne den Lesefluss zu stören. Dies fördert Empowerment und eine proaktive Haltung. -->
+    <!-- Visualization & Content Choices:
+        1. Info: Herzgesunder Teller. Goal: Inform/Empower. Viz: Doughnut Chart (Chart.js). Interaction: Visuelle Aufteilung. Justification: Zeigt positive Proportionen statt Verbote. Library: Chart.js.
+        2. Info: Detaillierte Nährstoff-Fakten (Salz, Kalium, Omega-3). Goal: Deepen Knowledge. Viz: Interaktive Modale (HTML/CSS/JS). Interaction: Klick auf animierten Button öffnet ein Overlay. Justification: Bietet detaillierte Fakten auf Abruf, visuell hervorgehoben wie vom User gewünscht.
+        3. Info: Bewegungstypen. Goal: Empower/Guide. Viz: Thematische Karten (HTML/Tailwind). Interaction: Keine. Justification: Klare, motivierende Gliederung in "Ausdauer" und "Kraft".
+        4. Info: ICD-Funktion. Goal: Reassure/Inform. Viz: Interaktives Modal. Interaction: Klick. Justification: Entmystifiziert die Technologie und rahmt sie als "Schutzengel", was die Angst reduziert.
+        5. Info: Praxis-Tipps. Goal: Empower/Organize. Viz: Checklisten-Stil Karten (HTML/Tailwind). Justification: Macht den Alltag mit der Diagnose greifbar und managebar.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- KORREKTUR: 'type="text/tailwindcss"' hinzugefügt, damit das CDN die @apply-Regeln verarbeiten kann -->
+    <style type="text/tailwindcss">
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdfcfb; /* Sehr warmes, helles Weiß */
+        }
+        .nav-btn {
+            @apply flex-1 py-4 px-2 md:px-6 text-sm md:text-base font-medium text-center text-stone-600 border-b-4 border-transparent hover:text-emerald-700 hover:border-emerald-300 transition-all duration-300 ease-in-out cursor-pointer;
+        }
+        .nav-btn.active {
+            @apply text-emerald-700 border-emerald-600;
+        }
+        .content-pane {
+            /* 'hidden' Klasse wird jetzt per JS gesteuert */
+        }
+        .content-pane.active {
+            @apply block;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 380px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px;
+            max-height: 380px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 330px;
+            }
+        }
+        h2 {
+            @apply text-3xl font-bold text-emerald-800 mb-5;
+        }
+        h3 {
+            @apply text-2xl font-semibold text-emerald-700 mb-3;
+        }
+        p {
+            @apply text-base text-stone-700 mb-4 leading-relaxed;
+        }
+        .info-card {
+            @apply bg-white border border-stone-200 rounded-lg p-6 shadow-sm mb-4 transform transition-shadow duration-300 hover:shadow-md;
+        }
+        .info-card ul li {
+            @apply relative pl-7 text-stone-700 mb-2;
+        }
+        .info-card ul.positive li::before {
+            content: '✓';
+            @apply absolute left-0 top-1 text-emerald-500 font-bold;
+        }
+        .info-card ul.caution li::before {
+            content: '💡';
+            @apply absolute left-0 top-1 text-amber-500 font-bold;
+        }
+        .info-card ul.checklist li {
+            @apply relative pl-8 text-stone-700 mb-3;
+        }
+        .info-card ul.checklist li::before {
+            content: '✓';
+            @apply absolute left-0 top-1 text-emerald-600 font-bold text-xl flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 border border-emerald-200;
+            line-height: 1.5rem; /* Zentriert das Häkchen */
+        }
+        
+        /* --- NEUE ANIMATION & BUTTON-STILE --- */
+        @keyframes pulse-light {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
+            50% { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+        }
+        .modal-trigger-btn {
+            @apply inline-block bg-emerald-50 text-emerald-700 font-semibold px-4 py-2 rounded-lg hover:bg-emerald-100 hover:text-emerald-800 cursor-pointer transition-all duration-200 text-sm;
+            /* Angewandte Animation */
+            animation: pulse-light 2.5s infinite;
+            border: 1px solid #a7f3d0; /* emerald-200 */
+        }
+        
+        /* --- NEUE MODAL STILE (KEIN HIDDEN) --- */
+        .modal {
+            display: none; /* Standardmäßig versteckt, wird per inline style 'flex' */
+            @apply fixed inset-0 z-50 overflow-auto bg-black bg-opacity-60 items-center justify-center p-4 transition-opacity duration-300 opacity-100;
+        }
+        .modal-content {
+            @apply bg-white rounded-lg shadow-2xl w-full max-w-2xl p-6 md:p-8 relative transform scale-100 transition-transform duration-300;
+        }
+        .modal-close {
+            @apply absolute top-4 right-5 text-3xl font-bold text-stone-500 hover:text-stone-800 cursor-pointer transition-colors;
+        }
+    </style>
+</head>
+<body onkeydown="closeAllModalsOnEscape(event)">
+
+    <!-- Container -->
+    <div class="container mx-auto max-w-5xl p-4 md:p-8 min-h-screen">
+        
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-emerald-800 mb-3">Ihr Herzgesund-Kompass</h1>
+            <p class="text-xl md:text-2xl text-stone-600">Ihr Leben. Ihre Energie. Ihre Zukunft.</p>
+        </header>
+
+        <!-- Intro Card -->
+        <section class="bg-white rounded-lg shadow-xl p-6 md:p-8 mb-8">
+            <h2 class="text-center text-3xl">Willkommen auf Ihrem neuen Weg!</h2>
+            <p class="text-center text-lg max-w-3xl mx-auto">Mit 35 eine Herzdiagnose zu bekommen, ist ein Schock – keine Frage. Aber sehen wir es als das, was es ist: Ein Weckruf und ein <strong>Startschuss</strong>. Ein Startschuss für ein bewussteres, gesünderes und vielleicht sogar glücklicheres Leben als je zuvor. Sie haben Ihr ganzes Leben vor sich, und Sie haben es in der Hand. Diese Seite ist Ihr Werkzeugkasten dafür.</p>
+        </section>
+
+        <!-- Main Content mit Tabs -->
+        <main class="bg-white rounded-lg shadow-xl">
+            <!-- Tab Navigation -->
+            <nav class="flex flex-wrap border-b border-stone-200 rounded-t-lg bg-stone-50" aria-label="Tabs">
+                <button id="btn-nutrition" class="nav-btn active" onclick="showTab('nutrition')">Genuss (Ernährung)</button>
+                <button id="btn-activity" class="nav-btn" onclick="showTab('activity')">Energie (Bewegung)</button>
+                <button id="btn-wellbeing" class="nav-btn" onclick="showTab('wellbeing')">Balance (Wohlbefinden)</button>
+                <button id="btn-support" class="nav-btn" onclick="showTab('support')">Sicherheit (Medizin)</button>
+                <button id="btn-practice" class="nav-btn" onclick="showTab('practice')">Alltag (Praxis-Tipps)</button>
+            </nav>
+
+            <!-- Tab Content -->
+            <div class="p-4 md:p-8">
+                <!-- Tab 1: Ernährung (Genuss) -->
+                <div id="nutrition" class="content-pane active">
+                    <h2>Genuss: Essen, das Sie stärkt</h2>
+                    <p>Ernährung ist Ihr mächtigtes Werkzeug. Es geht nicht um Diät, sondern um Genuss und darum, Ihrem Körper Gutes zu tun. Entdecken Sie, wie lecker "herzgesund" sein kann!</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center mb-6">
+                        <div>
+                            <div class="chart-container">
+                                <canvas id="nutritionChart"></canvas>
+                            </div>
+                            <p class="text-center text-sm text-stone-600 mt-2">Visualisierung "Der herzgesunde Teller"</p>
+                        </div>
+                        
+                        <div class="info-card border-l-4 border-emerald-500">
+                            <h3>Darauf freut sich Ihr Herz</h3>
+                            <!-- GEÄNDERT: Kurzer Teaser-Text -->
+                            <p class="text-sm mb-4">Die Basis Ihrer Ernährung sollte aus diesen Gruppen bestehen. Sie liefern Vitamine, Mineralstoffe und gesunde Energie.</p>
+                            <!-- NEU: Button hinzugefügt, der das neue Modal öffnet -->
+                            <button class="modal-trigger-btn" onclick="document.getElementById('modal-basics').style.display = 'flex'">Details anzeigen (mehr erfahren)</button>
+                            
+                            <!-- ENTFERNT: Die UL-Liste wurde von hier in das Modal verschoben -->
+                        </div>
+                    </div>
+                    
+                    <h3>Fakten-Fenster: Mehr Wissen, mehr Kontrolle</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="info-card">
+                            <h4 class="text-xl font-semibold text-stone-800 mb-2">Der Salz-Check</h4>
+                            <p class="text-sm mb-4">Das Reduzieren von Salz ist oft die effektivste Einzelmaßnahme. Es geht nicht nur um den Salzstreuer...</p>
+                            <!-- NEUE BRUTE-FORCE LOGIK -->
+                            <button class="modal-trigger-btn" onclick="document.getElementById('modal-salt').style.display = 'flex'">Warum Salz so wichtig ist (mehr erfahren)</button>
+                        </div>
+                        <div class="info-card">
+                            <h4 class="text-xl font-semibold text-stone-800 mb-2">Kalium: Der Gegenspieler</h4>
+                            <p class="text-sm mb-4">Kalium ist ein Mineral, das hilft, den Blutdruck zu regulieren und die Effekte von Natrium auszugleichen.</p>
+                            <!-- NEUE BRUTE-FORCE LOGIK -->
+                            <button class="modal-trigger-btn" onclick="document.getElementById('modal-potassium').style.display = 'flex'">Wo steckt Kalium drin? (mehr erfahren)</button>
+                        </div>
+                        <div class="info-card">
+                            <h4 class="text-xl font-semibold text-stone-800 mb-2">Omega-3-Wunder</h4>
+                            <p class="text-sm mb-4">Diese gesunden Fette sind echte "Herzschützer". Sie wirken entzündungshemmend.</p>
+                            <!-- NEUE BRUTE-FORCE LOGIK -->
+                            <button class="modal-trigger-btn" onclick="document.getElementById('modal-omega3').style.display = 'flex'">Die besten Quellen (mehr erfahren)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Bewegung (Energie) -->
+                <div id="activity" class="content-pane hidden">
+                    <h2>Energie: Bewegung, die Freude macht</h2>
+                    <p>Ihr Herz ist ein Muskel und möchte sanft trainiert werden. Es geht nicht um Marathons, sondern um Regelmäßigkeit, die Ihnen ein gutes Körpergefühl gibt und Ihr Herz stärkt.</p>
+                    <p><strong>Wichtig:</strong> Sprechen Sie immer mit Ihrem Arzt, bevor Sie mit einem neuen Sportprogramm beginnen. Oft ist eine "Herzsportgruppe" der perfekte, sicher begleitete Einstieg.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="info-card border-l-4 border-emerald-500">
+                            <h3>Sanfte Ausdauer</h3>
+                            <p>Dies trainiert Ihr Herz-Kreislauf-System:</p>
+                            <ul class="positive">
+                                <li><strong>Flottes Gehen (Walken):</strong> 30 Minuten, 5x pro Woche ist ein super Ziel.</li>
+                                <li><strong>Radfahren:</strong> Auf dem Ergometer (mit Pulsuhr) oder draußen auf flacher Strecke.</li>
+                                <li><strong>Schwimmen:</strong> Ein wunderbares Ganzkörpertraining, das die Gelenke schont.</li>
+                            </ul>
+                        </div>
+                        <div class="info-card border-l-4 border-emerald-500">
+                            <h3>Sanfte Kraft</h3>
+                            <p>Muskeln unterstützen Ihr Herz bei der Arbeit:</p>
+                            <ul class="positive">
+                                <li><strong>Yoga & Tai Chi:</strong> Verbindet Kraft, Dehnung und Entspannung.</li>
+                                <li><strong>Leichtes Hanteltraining:</strong> (Nach Freigabe!) Mit wenig Gewicht und vielen Wiederholungen.</li>
+                                <li><strong>Wassergymnastik:</strong> Krafttraining im Wasser ist besonders sanft.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="info-card bg-amber-50 border-amber-300 mt-6">
+                        <h3 class="text-amber-800">Hören Sie auf Ihren Körper!</h3>
+                        <p>Das is die wichtigste Regel. Stoppen Sie sofort bei:</p>
+                        <ul class="caution">
+                            <li>Schwindel oder Benommenheit</li>
+                            <li>Plötzlicher, starker Atemnot</li>
+                            <li>Schmerzen oder Druck in der Brust</li>
+                            <li>Unregelmäßigem Herzschlag</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Wohlbefinden (Balance) -->
+                <div id="wellbeing" class="content-pane hidden">
+                    <h2>Balance: Finden Sie Ihre innere Mitte</h2>
+                    <p>Stress ist ein großer Faktor für die Herzgesundheit. Diese Diagnose ist emotional. Es ist absolut entscheidend, dass Sie sich Zeit für Ihre Seele, Ihre Ängste und Ihre Freude nehmen.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="info-card">
+                            <h3 class="text-emerald-700">Stress-Management</h3>
+                            <p>Finden Sie, was Sie "runterbringt":</p>
+                            <ul class="positive">
+                                <li><strong>Achtsamkeit & Meditation:</strong> Schon 5-10 Minuten täglich können einen Riesenunterschied machen.</li>
+                                <li><strong>Natur:</strong> Ein Spaziergang im Wald wirkt Wunder.</li>
+                                <li><strong>Hobbys:</strong> Tun Sie, was Sie lieben – Malen, Musik hören, Lesen...</li>
+                                <li><strong>Nein sagen:</strong> Schützen Sie Ihre Energie. Sie müssen nicht alles schaffen.</li>
+                            </ul>
+                        </div>
+                        <div class="info-card">
+                            <h3 class="text-emerald-700">Reden & Teilen</h3>
+                            <p>Sie sind nicht allein mit Ihren Sorgen:</p>
+                             <ul class="positive">
+                                <li><strong>Partner & Freunde:</strong> Sprechen Sie offen über Ihre Ängste.</li>
+                                <li><strong>Selbsthilfegruppen:</strong> Der Austausch mit anderen Betroffenen kann unglaublich heilsam sein.</li>
+                                <li><strong>Professionelle Hilfe:</strong> Eine Psychotherapie ist keine Schande, sondern ein starkes Werkzeug, um diesen neuen Weg zu meistern.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="info-card mt-6">
+                        <h3 class="text-emerald-700">Atemübung: Die 4-7-8 Technik</h3>
+                        <p>Eine simple Übung bei akutem Stress:</p>
+                        <ol class="list-decimal list-inside text-stone-700">
+                            <li class="mb-2"><strong>4 Sekunden:</strong> Langsam durch die Nase einatmen.</li>
+                            <li class="mb-2"><strong>7 Sekunden:</strong> Luft anhalten.</li>
+                            <li class="mb-2"><strong>8 Sekunden:</strong> Langsam und hörbar durch den Mund ausatmen.</li>
+                            <li class="mb-2">3-4 Mal wiederholen.</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <!-- Tab 4: Medizin (Sicherheit) -->
+                <div id="support" class="content-pane hidden">
+                    <h2>Sicherheit: Ihr medizinisches Netz</h2>
+                    <p>Sehen Sie die moderne Medizin als Ihr persönliches Support-Team. Sie sind nicht allein – Sie haben ein Team und Technologie, die Sie unterstützen und beschützen.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="info-card">
+                            <h3 class="text-emerald-700">Diagnose EF 35%: Eine Momentaufnahme</h3>
+                            <p>Eine <strong>Ejektionsfraktion (EF) von 35%</strong> ist ein Messwert. Er beschreibt, wie viel Blut das Herz pro Schlag pumpt (gesund: 55-60%).</p>
+                            <p>Dieser Wert ist <strong>kein Urteil</strong>, sondern eine <strong>Momentaufnahme</strong>. Mit der richtigen Therapie und Ihrem Einsatz bei Ernährung und Bewegung kann sich dieser Wert oft verbessern! Er ist der Startpunkt Ihrer Reise.</p>
+                        </div>
+                        <div class="info-card">
+                            <h3 class="text-emerald-700">Medikamente: Ihr Team</h3>
+                            <p>Ihre Medikamente sind Ihre täglichen Helfer. Sie sind entscheidend, um:</p>
+                             <ul class="positive">
+                                <li>das Herz zu entlasten (z.B. Betablocker, ACE-Hemmer).</li>
+                                <li>die Pumpleistung zu verbessern.</li>
+                                <li>Symptome wie Wassereinlagerungen zu verhindern.</li>
+                            </ul>
+                            <p class="mt-4">Sehen Sie sie als Freunde, nicht als Last. Ihre konsequente Einnahme ist der Schlüssel.</p>
+                        </div>
+                    </div>
+                    <div class="info-card mt-6 bg-emerald-50 border-emerald-200">
+                        <h3 class="text-emerald-800">Der ICD: Ihr Schutzengel</h3>
+                        <p class="mb-4">Bei einer EF unter 35% kann das Risiko für Rhythmusstörungen erhöht sein. Deshalb wird oft ein <strong>implantierbarer Defibrillator (ICD)</strong> empfohlen. Das klingt vielleicht beängstigend, aber rahmen Sie es neu: Es ist Ihr persönlicher Schutzengel, ein High-Tech-Bodyguard, der 24/7 über Sie wacht.</p>
+                        <!-- NEUE BRUTE-FORCE LOGIK -->
+                        <button class="modal-trigger-btn" onclick="document.getElementById('modal-icd').style.display = 'flex'">Wie funktioniert ein ICD? (mehr erfahren)</button>
+                    </div>
+                </div>
+                
+                <!-- Tab 5: Praxis-Tipps (Alltag) -->
+                <div id="practice" class="content-pane hidden">
+                    <h2>Alltag: Ihre neue Routine</h2>
+                    <p>Wie sieht das Leben jetzt praktisch aus? Hier ist eine Checkliste für Routinen, die Ihnen helfen, den Überblick zu behalten und sich jeden Tag gut zu fühlen.</p>
+                    
+                    <div class="info-card">
+                        <h3 class="text-emerald-700">Ihr Morgen-Ritual</h3>
+                        <ul class="checklist">
+                            <li><strong>Wiegen:</strong> Jeden Morgen nach dem Aufstehen und Toilettengang. Eine plötzliche Gewichtszunahme (z.B. > 1-2 kg in 2 Tagen) kann auf Wassereinlagerungen hindeuten. Melden Sie dies Ihrem Arzt.</li>
+                            <li><strong>Blutdruck messen:</strong> Lernen Sie, Ihren Blutdruck selbst zu messen und führen Sie ein Tagebuch.</li>
+                            <li><strong>Medikamente:</strong> Richten Sie eine feste Routine ein (z.B. Pillenbox), damit Sie nichts vergessen.</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3 class="text-emerald-700">Kochen: Salz clever ersetzen</h3>
+                        <p>Der Geschmackssinn gewöhnt sich um! Sie werden salzige Speisen bald als unangenehm empfinden.</p>
+                        <ul class="checklist">
+                            <li><strong>Kräuter nutzen:</strong> Investieren Sie in frische Kräuter (Petersilie, Schnittlauch, Basilikum...) oder eine gute Auswahl an getrockneten.</li>
+                            <li><strong>Gewürze entdecken:</strong> Paprika, Curry, Muskat, Pfeffer, Chili, Kreuzkümmel.</li>
+                            <li><strong>Säure einsetzen:</strong> Ein Spritzer Zitronensaft oder Essig hebt den Eigengeschmack von Speisen.</li>
+                            <li><strong>Aromaten anbraten:</strong> Zwiebeln, Knoblauch und Ingwer als kräftige, salzfreie Basis.</li>
+                        </ul>
+                    </div>
+                    <div class="info-card">
+                        <h3 class="text-emerald-700">Arztbesuche vorbereiten</h3>
+                        <ul class="checklist">
+                            <li><strong>Tagebuch mitbringen:</strong> Zeigen Sie Ihr Gewichts- und Blutdruck-Protokoll.</li>
+                            <li><strong>Fragen aufschreiben:</strong> Keine Frage ist dumm! Schreiben Sie alles auf, was Sie bewegt.</li>
+                            <li><strong>Begleitung mitnehmen:</strong> Nehmen Sie zu wichtigen Terminen eine Vertrauensperson mit. Vier Ohren hören mehr als zwei.</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center mt-12 text-sm text-stone-500">
+            <p>Dieser Kompass dient der Inspiration und Information. Er ersetzt niemals das persönliche Gespräch mit Ihrem Kardiologen oder Ärzteteam. Sie sind auf einem guten Weg!</p>
+        </footer>
+
+    </div>
+
+    <!-- Modals (Fakten-Fenster) - JETZT OHNE 'hidden' KLASSE -->
+    
+    <!-- NEU: Modal für die Ernährungs-Basics -->
+    <div id="modal-basics" class="modal" onclick="if(event.target === this) this.style.display = 'none'">
+        <div class="modal-content">
+            <span class="modal-close" onclick="document.getElementById('modal-basics').style.display = 'none'">&times;</span>
+            <h3 class="mt-0">Darauf freut sich Ihr Herz</h3>
+            <!-- GEÄNDERT: Ausführlicherer Inhalt -->
+            <p>Diese Lebensmittelgruppen sind die Bausteine für eine herzstärkende Ernährung. Sie wirken oft entzündungshemmend und liefern lebenswichtige Nährstoffe:</p>
+            <!-- Ersetzt durch eine detailliertere Liste basierend auf der Studie -->
+            <ul class="positive mt-4 space-y-3"> <!-- 'space-y-3' für besseren Abstand -->
+                <li>
+                    <strong>Gemüse & Obst (Die Bunte Basis):</strong>
+                    <p class="text-sm text-stone-600 pl-4">Die Basis! Mindestens 5 Portionen am Tag. Sie sind vollgepackt mit Vitaminen und wichtigem Kalium. <br><strong>Profi-Tipps:</strong> Greifen Sie zu Beeren (z.B. Blaubeeren) für Antioxidantien und Blattgemüse (z.B. Spinat). Frisch oder gefroren ist beides super!</p>
+                </li>
+                <li>
+                    <strong>Gesunde Fette (Die Entzündungshemmer):</strong>
+                    <p class="text-sm text-stone-600 pl-4">Das sind Ihre 'guten' Fette! Sie sind entscheidend, um Entzündungen zu bekämpfen. <br><strong>Top-Quellen:</strong> Natives Olivenöl (extra), Rapsöl, Walnüsse, Mandeln, Leinsamen und Avocados.</p>
+                </li>
+                <li>
+                    <strong>Vollkorn (Die Dauerhaften Energielieferanten):</strong>
+                    <p class="text-sm text-stone-600 pl-4">Tauschen Sie Weißmehl-Produkte (weißes Brot, normale Nudeln) gegen die "Power"-Variante. Sie sättigen länger und liefern wichtige Ballaststoffe. <br><strong>Profi-Tipps:</strong> Haferflocken am Morgen oder Quinoa als Beilage sind ein perfekter Start.</p>
+                </li>
+                <li>
+                    <strong>Gute Proteine (Die Starken Helfer):</strong>
+                    <p class="text-sm text-stone-600 pl-4">Entdecken Sie die Vielfalt an Proteinen, die Ihr Herz unterstützen. <br><strong>Top-Quellen:</strong> Fettarmer Fisch (1-2x pro Woche, z.B. <strong>Lachs, Hering, Makrele</strong> für Omega-3), Geflügel (ohne Haut) und pflanzliche Kraftpakete wie Bohnen, Linsen und Kichererbsen.</p>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Modal: Salz -->
+    <div id="modal-salt" class="modal" onclick="if(event.target === this) this.style.display = 'none'">
+        <div class="modal-content">
+            <span class="modal-close" onclick="document.getElementById('modal-salt').style.display = 'none'">&times;</span>
+            <h3 class="mt-0">Fakten-Fenster: Der Salz-Check</h3>
+            <p>Bei Herzinsuffizienz muss der Körper oft mehr Wasser als normal bewältigen. Salz (Natrium) bindet Wasser im Körper – wie ein Schwamm. Je mehr Salz Sie essen, desto mehr Wasser lagert Ihr Körper ein.</p>
+            <p>Dieses überschüssige Wasser erhöht das Blutvolumen und damit die Last, die Ihr Herz pumpen muss. Es kann zu Wassereinlagerungen (Ödemen) in den Beinen oder sogar in der Lunge (Lungenödem, führt zu Atemnot) kommen.</p>
+            <h4 class="text-xl font-semibold mt-4 mb-2">Die größten Salz-Fallen:</h4>
+            <ul class="list-disc list-inside text-stone-700">
+                <li>Fertiggerichte (Pizza, Suppen, Saucen)</li>
+                <li>Wurst, Schinken und gepökeltes Fleisch</li>
+                <li>Brot und Brötchen (oft unterschätzt)</li>
+                <li>Käse (besonders Hartkäse)</li>
+                <li>Salzige Snacks (Chips, Salzstangen)</li>
+            </ul>
+            <p class="mt-4 font-semibold"><strong>Ziel:</strong> Oft wird eine Reduktion auf <strong>unter 5-6 Gramm Salz pro Tag</strong> empfohlen. Das entspricht etwa einem Teelöffel – inklusive des versteckten Salzes!</p>
+        </div>
+    </div>
+
+    <!-- Modal: Kalium -->
+    <div id="modal-potassium" class="modal" onclick="if(event.target === this) this.style.display = 'none'">
+        <div class="modal-content">
+            <span class="modal-close" onclick="document.getElementById('modal-potassium').style.display = 'none'">&times;</span>
+            <h3 class="mt-0">Fakten-Fenster: Kalium, der Helfer</h3>
+            <p>Kalium ist ein wichtiger Mineralstoff und der natürliche Gegenspieler von Natrium (Salz). Es hilft den Nieren, überschüssiges Natrium auszuscheiden und kann so helfen, den Blutdruck zu senken und das Herz zu entlasten.</p>
+            <p class="font-bold text-amber-700 bg-amber-50 p-3 rounded-lg"><strong>Achtung:</strong> Einige Herz- oder Entwässerungsmedikamente (Diuretika) beeinflussen den Kaliumspiegel. Manche spülen es aus, andere lassen es ansteigen. Sprechen Sie daher <strong>unbedingt mit Ihrem Arzt</strong>, bevor Sie Ihre Kaliumzufuhr stark ändern oder Kaliumpräparate einnehmen!</p>
+            <h4 class="text-xl font-semibold mt-4 mb-2">Gute Kalium-Quellen sind:</h4>
+            <ul class="list-disc list-inside text-stone-700">
+                <li>Bananen</li>
+                <li>Avocados</li>
+                <li>Spinat (gekocht)</li>
+                <li>Süßkartoffeln</li>
+                <li>Trockenfrüchte (z.B. Aprikosen - aber Achtung: viel Zucker!)</li>
+                <li>Tomaten und Tomatenmark</li>
+                <li>Linsen und Bohnen</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Modal: Omega-3 -->
+    <div id="modal-omega3" class="modal" onclick="if(event.target === this) this.style.display = 'none'">
+        <div class="modal-content">
+            <span class="modal-close" onclick="document.getElementById('modal-omega3').style.display = 'none'">&times;</span>
+            <h3 class="mt-0">Fakten-Fenster: Omega-3-Wunder</h3>
+            <p>Omega-3-Fettsäuren sind mehrfach ungesättigte Fette, die für den Körper lebenswichtig sind. Sie sind bekannt für ihre stark <strong>entzündungshemmenden</strong> Eigenschaften. Chronische Entzündungen können Herzerkrankungen verschlimmern.</p>
+            <p>Zudem können sie helfen, die Blutfettwerte (Triglyceride) zu senken und den Herzrhythmus zu stabilisieren.</p>
+            <h4 class="text-xl font-semibold mt-4 mb-2">Die besten Quellen:</h4>
+            <ul class="list-disc list-inside text-stone-700">
+                <li><strong>Fettreicher Kaltwasserfisch:</strong> Lachs, Hering, Makrele, Sardine. (Ziel: 1-2 Portionen pro Woche)</li>
+                <li><strong>Pflanzliche Öle:</strong> Leinöl (hat die höchste Konzentration!), Rapsöl, Walnussöl. (Öle nicht zu stark erhitzen).</li>
+                <li><strong>Samen & Nüsse:</strong> Geschrotete Leinsamen, Chiasamen, Walnüsse.</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Modal: ICD -->
+    <div id="modal-icd" class="modal" onclick="if(event.target === this) this.style.display = 'none'">
+        <div class="modal-content">
+            <span class="modal-close" onclick="document.getElementById('modal-icd').style.display = 'none'">&times;</span>
+            <h3 class="mt-0">Fakten-Fenster: Wie funktioniert ein ICD?</h3>
+            <p>Ein ICD (Implantierbarer Cardioverter-Defibrillator) ist ein kleines Gerät, das meist unter dem Schlüsselbein implantiert wird. Dünne Drähte (Sonden) führen von dort bis ins Herz.</p>
+            <p>Man kann es sich als zwei Geräte in einem vorstellen:</p>
+            <ol class="list-decimal list-inside text-stone-700 mt-4">
+                <li class="mb-2"><strong>Der Wächter (Herzschrittmacher):</strong> Das Gerät überwacht permanent Ihren Herzrhythmus. Wenn das Herz zu langsam schlägt, kann es (wie ein normaler Herzschrittmacher) kleine, unmerkliche Impulse abgeben, um es auf Takt zu halten.</li>
+                <li class="mb-2"><strong>Der Beschützer (Defibrillator):</strong> Das ist die Hauptfunktion. Wenn der ICD eine lebensbedrohliche, schnelle Rhythmusstörung (wie Kammerflimmern) erkennt, greift er ein. Er versucht oft erst, die Störung durch schnelle, kleine Impulse (schmerzlos) zu "überholen". Gelingt das nicht, gibt er einen starken, lebensrettenden Schock ab, um das Herz "zurückzusetzen".</li>
+            </ol>
+            <p class="mt-4">Sie leben Ihr ganz normales Leben. Der ICD ist nur Ihr stiller Begleiter. Die meisten Menschen spüren ihn im Alltag nicht. Er gibt Ihnen die Sicherheit, dass Sie im Notfall geschützt sind.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- V5 LOGIK (TABs & CHART) ---
+        // Die Modal-Logik ist jetzt DIREKT im HTML 'onclick'.
+
+        var activeChart = null;
+
+        // Zeigt einen Tab an und blendet andere aus
+        function showTab(tabId) {
+            // Alle Inhaltsbereiche ausblenden
+            document.querySelectorAll('.content-pane').forEach(pane => {
+                pane.classList.remove('active');
+                pane.classList.add('hidden');
+            });
+
+            // Alle Tab-Buttons deaktivieren
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Ziel-Tab und -Button aktivieren
+            const targetPane = document.getElementById(tabId);
+            const targetButton = document.getElementById('btn-' + tabId);
+
+            if(targetPane) {
+                targetPane.classList.add('active');
+                targetPane.classList.remove('hidden');
+            }
+            if(targetButton) {
+                targetButton.classList.add('active');
+            }
+
+            // Spezialfall: Chart für Ernährungstab (neu) zeichnen
+            if (tabId === 'nutrition') {
+                // Kurze Verzögerung, damit der Container sichtbar ist
+                setTimeout(createNutritionChart, 50);
+            }
+        }
+
+        // Schließt alle Modale (für Escape-Taste)
+        function closeAllModalsOnEscape(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(modal => {
+                    modal.style.display = 'none'; // Benutzt die Brute-Force Methode
+                });
+            }
+        }
+
+        // Erstellt das Chart (oder zerstört das alte und erstellt es neu)
+        function createNutritionChart() {
+            const ctx = document.getElementById('nutritionChart')?.getContext('2d');
+            if (!ctx) return; // Beenden, wenn Canvas nicht da ist
+
+            // Wenn schon ein Chart existiert, zerstöre es, bevor ein neues gezeichnet wird
+            if (window.activeChart) {
+                window.activeChart.destroy();
+            }
+
+            window.activeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Gemüse & Obst', 'Vollkornprodukte', 'Gutes Protein & Fette'],
+                    datasets: [{
+                        label: 'Der herzgesunde Teller',
+                        data: [50, 25, 25],
+                        backgroundColor: [
+                            'rgba(52, 211, 153, 0.8)', // emerald-400
+                            'rgba(245, 158, 11, 0.8)', // amber-500
+                            'rgba(59, 130, 246, 0.7)'  // blue-500
+                        ],
+                        borderColor: '#fdfcfb',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label}: ${context.raw}%`;
+                                }
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Der herzgesunde Teller (Ideal-Aufteilung)',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            },
+                            color: '#333',
+                            padding: {
+                                bottom: 20
+                            }
+                        }
+                    },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        // Das erste Chart laden, wenn die Seite (und das Bild) fertig ist
+        window.onload = function() {
+            // Standard-Tab (Ernährung) anzeigen und Chart laden
+            showTab('nutrition');
+        };
+    </script>
+</body>
+</html>
